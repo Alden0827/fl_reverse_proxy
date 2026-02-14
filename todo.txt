@@ -1,13 +1,38 @@
-1. Create a python flask application that will act as reverse proxy
-2. The intetface has cards of application that when clicked will open the selected application. 
-3. Use tailwind css, make the design nice. and  card hover effects. 
-4. The applications are running in separate ports running at the back of the proxyserver. 
-6. add interface for admin to register more app. 
-    Form:
+Reverse Proxy Flask Application – Development Instructions
+1. Create a Python Flask application
+The Flask app will act as a reverse proxy hub for multiple backend applications.
+2. It will route user requests to different applications running on separate ports.
+Main Interface (Application Selector)
+3. The home page must display all registered applications as clickable cards.
+4. When a user clicks a card, the system should proxy them to the selected application’s URL.
+UI and Styling
+5. Use Tailwind CSS for layout and styling.
+Design should be clean, modern, and responsive.
+Cards must include:
+Application image (circular thumbnail)
+App name
+Short description
+6. Add hover effects to cards (scale, shadow, or glow effect).
+
+7. Each application runs on a separate port (e.g., 5001, 5002, 5003, etc.).
+The proxy server must forward requests to the correct app based on user selection.
+8. URLs must be configurable (not hardcoded).
+
+Admin Management Interface
+Create an admin page to register and manage applications.
+Admin form fields:
 App Name
-URL
+Application URL
 Description
-Image (display inside a circle) 
-7. If error on url display a page 
+Image (displayed as a circular icon on the card)
 
-
+Registered apps must be stored in a database (or persistent storage).
+Error Handling
+If a target application URL is unreachable or returns an error:
+Display a friendly error page with the message:
+“This application is currently unavailable.”
+Do not expose technical error details to users.
+Search or filter apps by name
+Authentication for admin panel
+Ability to edit or delete registered applications
+Status indicator (online/offline)
