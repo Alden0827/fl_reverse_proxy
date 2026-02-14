@@ -97,6 +97,12 @@ def proxy(app_id, path):
         # We exclude 'Host' and 'Cookie' headers because they are handled by requests
         forward_headers = {key: value for (key, value) in request.headers if key.lower() not in ['host', 'cookie']}
 
+        # Add X-Forwarded headers to help the backend application understand the proxying
+        forward_headers['X-Forwarded-For'] = request.remote_addr
+        forward_headers['X-Forwarded-Host'] = request.host
+        forward_headers['X-Forwarded-Proto'] = request.scheme
+        forward_headers['X-Forwarded-Prefix'] = f"/proxy/{app_id}"
+
         resp = requests.request(
             method=request.method,
             url=target_url,
@@ -117,23 +123,39 @@ def proxy(app_id, path):
             if name_lower not in excluded_headers:
                 if name_lower == 'location':
                     # Rewrite redirects to keep the user within the proxy path
+                    proxy_prefix = f"/proxy/{app_id}"
                     if value.startswith('/'):
-                        value = f"/proxy/{app_id}{value}"
+                        if not value.startswith(f"{proxy_prefix}/"):
+                            value = f"{proxy_prefix}{value}"
                     elif value.startswith(app_item.url.rstrip('/')):
-                        value = value.replace(app_item.url.rstrip('/'), f"/proxy/{app_id}", 1)
+                        # Replace backend URL with proxy prefix, but avoid double-prefixing
+                        backend_url = app_item.url.rstrip('/')
+                        if not value.startswith(f"{backend_url}{proxy_prefix}/"):
+                            value = value.replace(backend_url, proxy_prefix, 1)
+                        else:
+                            # If it already had the proxy prefix, just remove the backend domain
+                            value = value.replace(backend_url, "", 1)
                 headers.append((name, value))
 
         # Rewrite content for text-based responses
         content = resp.content
         if any(t in content_type for t in ['text/html', 'text/css', 'application/javascript', 'application/json']):
             proxy_prefix = f"/proxy/{app_id}"
-            # Rewrite absolute paths starting with / but not followed by another / (protocol-relative)
-            # or already prefixed with /proxy/<id>/
-            # This regex looks for / preceded by a quote, equals sign, or parenthesis
-            # It avoids rewriting // (external links) and /proxy/<id>/ (already rewritten)
+
+            # 1. Rewrite absolute paths starting with /
+            # Regex targets / preceded by quote, equals, or parenthesis, but NOT // or /proxy/
             pattern = rb'(?<=["\'=\(])/(?![/]|proxy/\d+/)'
             replacement = f"{proxy_prefix}/".encode()
             content = re.sub(pattern, replacement, content)
+
+            # 2. Rewrite full backend URLs (with domain) to proxy-relative paths
+            # This handles cases where the backend app returns full URLs in its body.
+            # We use a regex to avoid double-prefixing if the app already respected X-Forwarded-Prefix.
+            backend_url = app_item.url.rstrip('/')
+            base_url_no_proto = backend_url.split('://')[-1]
+
+            full_url_pattern = rb'(https?://|//)' + re.escape(base_url_no_proto.encode()) + rb'/?(?![/]|proxy/\d+/)'
+            content = re.sub(full_url_pattern, proxy_prefix.encode() + b'/', content)
 
         response = Response(content, resp.status_code, headers)
         return response
