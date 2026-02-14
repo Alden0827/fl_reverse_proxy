@@ -8,6 +8,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///proxy.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'dev-secret-key'
+app.config['SESSION_COOKIE_NAME'] = 'proxyhub_session'
 
 db.init_app(app)
 
@@ -18,12 +19,12 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if not session.get('logged_in'):
-            return redirect(url_for('login'))
+            return redirect(url_for('admin_login'))
         return view(**kwargs)
     return wrapped_view
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -33,8 +34,8 @@ def login():
         flash('Invalid credentials')
     return render_template('login.html')
 
-@app.route('/logout')
-def logout():
+@app.route('/admin/logout')
+def admin_logout():
     session.pop('logged_in', None)
     return redirect(url_for('index'))
 
@@ -92,10 +93,13 @@ def proxy(app_id, path):
 
     try:
         # Forward the request to the target application
+        # We exclude 'Host' and 'Cookie' headers because they are handled by requests
+        forward_headers = {key: value for (key, value) in request.headers if key.lower() not in ['host', 'cookie']}
+
         resp = requests.request(
             method=request.method,
             url=target_url,
-            headers={key: value for (key, value) in request.headers if key != 'Host'},
+            headers=forward_headers,
             data=request.get_data(),
             cookies=request.cookies,
             allow_redirects=False,
@@ -104,8 +108,17 @@ def proxy(app_id, path):
 
         # Create a response to return to the user
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
-        headers = [(name, value) for (name, value) in resp.raw.headers.items()
-                   if name.lower() not in excluded_headers]
+        headers = []
+        for name, value in resp.headers.items():
+            name_lower = name.lower()
+            if name_lower not in excluded_headers:
+                if name_lower == 'location':
+                    # Rewrite redirects to keep the user within the proxy path
+                    if value.startswith('/'):
+                        value = f"/proxy/{app_id}{value}"
+                    elif value.startswith(app_item.url.rstrip('/')):
+                        value = value.replace(app_item.url.rstrip('/'), f"/proxy/{app_id}", 1)
+                headers.append((name, value))
 
         response = Response(resp.content, resp.status_code, headers)
         return response

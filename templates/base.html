@@ -20,9 +20,9 @@
                     <a href="{{ url_for('index') }}" class="text-gray-700 hover:text-indigo-600">Home</a>
                     {% if session.get('logged_in') %}
                         <a href="{{ url_for('admin') }}" class="text-gray-700 hover:text-indigo-600">Admin</a>
-                        <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">Logout</a>
+                        <a href="{{ url_for('admin_logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-300">Logout</a>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition duration-300">Admin Login</a>
+                        <a href="{{ url_for('admin_login') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition duration-300">Admin Login</a>
                     {% endif %}
                 </div>
             </div>
