@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Application Hub</h1>
+    <p class="text-xl text-gray-600">Access all your microservices from one central location.</p>
+</div>
+
+<div class="mb-8">
+    <form action="{{ url_for('index') }}" method="GET" class="max-w-md mx-auto">
+        <div class="relative">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search applications..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm">
+            <div class="absolute left-3 top-2.5 text-gray-400">
+                <i class="fas fa-search"></i>
+            </div>
+            {% if query %}
+            <a href="{{ url_for('index') }}" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times-circle"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for app in apps %}
+    <a href="{{ url_for('proxy', app_id=app.id, path='') }}" class="group">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-2xl border border-gray-100">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="relative">
+                        <img src="{{ app.image_url or 'https://via.placeholder.com/150' }}" alt="{{ app.name }}"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-indigo-100 p-1">
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white {{ 'bg-green-500' if app_statuses[app.id] else 'bg-red-500' }}"></div>
+                    </div>
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full {{ 'bg-green-100 text-green-800' if app_statuses[app.id] else 'bg-red-100 text-red-800' }}">
+                        {{ 'Online' if app_statuses[app.id] else 'Offline' }}
+                    </span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ app.name }}</h3>
+                <p class="text-gray-500 mt-2 text-sm line-clamp-2 h-10">{{ app.description or 'No description provided.' }}</p>
+                <div class="mt-4 flex items-center text-indigo-600 font-semibold text-sm">
+                    Launch Application <i class="fas fa-external-link-alt ml-2 text-xs transition-transform group-hover:translate-x-1"></i>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+
+    {% if not apps %}
+    <div class="col-span-full text-center py-12">
+        <div class="text-gray-400 text-5xl mb-4">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3 class="text-xl font-medium text-gray-600">No applications found.</h3>
+        <p class="text-gray-500">Try adjusting your search or add a new application in the admin panel.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

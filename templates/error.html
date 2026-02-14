@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto text-center py-20">
+    <div class="text-red-500 text-6xl mb-6">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Application Unavailable</h1>
+    <p class="text-lg text-gray-600 mb-8">This application is currently unavailable.</p>
+    <p class="text-md text-gray-500 mb-8">Attempted to reach: <strong>{{ app_name }}</strong></p>
+    <div class="space-y-4">
+        <p class="text-sm text-gray-500">The application might be down for maintenance or having connection issues. Please try again later.</p>
+        <a href="{{ url_for('index') }}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">
+            Go Back to Hub
+        </a>
+    </div>
+</div>
+{% endblock %}
