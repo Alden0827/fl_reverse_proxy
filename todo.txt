@@ -1,0 +1,5 @@
+1. Create a python flask application that will act as revrse proxy
+2. The intetface has cards of application that when clicked will open the selected application
+
+
+
