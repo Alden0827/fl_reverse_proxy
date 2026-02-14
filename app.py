@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, Res
 from models import db, Application
 import requests
 import functools
+import re
 from requests.exceptions import RequestException
 
 app = Flask(__name__)
@@ -109,6 +110,8 @@ def proxy(app_id, path):
         # Create a response to return to the user
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
         headers = []
+        content_type = resp.headers.get('Content-Type', '')
+
         for name, value in resp.headers.items():
             name_lower = name.lower()
             if name_lower not in excluded_headers:
@@ -120,7 +123,19 @@ def proxy(app_id, path):
                         value = value.replace(app_item.url.rstrip('/'), f"/proxy/{app_id}", 1)
                 headers.append((name, value))
 
-        response = Response(resp.content, resp.status_code, headers)
+        # Rewrite content for text-based responses
+        content = resp.content
+        if any(t in content_type for t in ['text/html', 'text/css', 'application/javascript', 'application/json']):
+            proxy_prefix = f"/proxy/{app_id}"
+            # Rewrite absolute paths starting with / but not followed by another / (protocol-relative)
+            # or already prefixed with /proxy/<id>/
+            # This regex looks for / preceded by a quote, equals sign, or parenthesis
+            # It avoids rewriting // (external links) and /proxy/<id>/ (already rewritten)
+            pattern = rb'(?<=["\'=\(])/(?![/]|proxy/\d+/)'
+            replacement = f"{proxy_prefix}/".encode()
+            content = re.sub(pattern, replacement, content)
+
+        response = Response(content, resp.status_code, headers)
         return response
     except RequestException as e:
         return render_template('error.html', app_name=app_item.name), 503
