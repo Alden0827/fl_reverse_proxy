@@ -1,5 +1,13 @@
-1. Create a python flask application that will act as revrse proxy
-2. The intetface has cards of application that when clicked will open the selected application
-
+1. Create a python flask application that will act as reverse proxy
+2. The intetface has cards of application that when clicked will open the selected application. 
+3. Use tailwind css, make the design nice. and  card hover effects. 
+4. The applications are running in separate ports running at the back of the proxyserver. 
+6. add interface for admin to register more app. 
+    Form:
+App Name
+URL
+Description
+Image (display inside a circle) 
+7. If error on url display a page 
 
 
