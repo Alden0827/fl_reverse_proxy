@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex items-center">
+        <a href="{{ url_for('admin') }}" class="text-indigo-600 hover:text-indigo-800 mr-4">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800">{{ app.name }} Dashboard</h1>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+        <form method="GET" class="flex flex-wrap gap-2 items-end">
+            <div>
+                <label class="block text-xs text-gray-500 font-bold mb-1">Start Date</label>
+                <input type="date" name="start_date" value="{{ start_date }}" class="border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 font-bold mb-1">End Date</label>
+                <input type="date" name="end_date" value="{{ end_date }}" class="border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 font-bold mb-1">Backend URL</label>
+                <select name="backend_id" class="border rounded px-2 py-1 text-sm">
+                    <option value="">All Backends</option>
+                    {% for backend in app.backends %}
+                    <option value="{{ backend.id }}" {% if selected_backend_id == backend.id %}selected{% endif %}>{{ backend.url }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-1.5 rounded text-sm hover:bg-indigo-700 transition">Filter</button>
+            <a href="{{ url_for('app_dashboard', id=app.id) }}" class="bg-gray-200 text-gray-700 px-4 py-1.5 rounded text-sm hover:bg-gray-300 transition">Reset</a>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-sm font-medium uppercase mb-1">Total Translations</div>
+        <div class="text-3xl font-bold text-gray-800">{{ total_requests }}</div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-sm font-medium uppercase mb-1">Success Rate</div>
+        <div class="text-3xl font-bold text-green-600">{{ "%.1f"|format(success_rate) }}%</div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-sm font-medium uppercase mb-1">Failed Requests</div>
+        <div class="text-3xl font-bold text-red-600">{{ failed_requests }}</div>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div class="text-gray-500 text-sm font-medium uppercase mb-1">Backends (Online)</div>
+        <div class="text-3xl font-bold text-indigo-600">
+            {{ app.backends|selectattr('is_online', 'equalto', True)|list|length }} / {{ app.backends|length }}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Hourly Chart -->
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Translations per Hour (Last 24h)</h3>
+        <canvas id="hourlyChart" height="200"></canvas>
+    </div>
+    <!-- Daily Chart -->
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Translations per Day (Last 30d)</h3>
+        <canvas id="dailyChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Backend URLs Status -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800">Backend Status</h3>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">URL</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Checked</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for backend in app.backends %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ backend.url }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if backend.is_online %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Online</span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Offline</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ backend.last_checked.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Hourly Chart
+    const hourlyData = {{ hourly_stats|tojson }};
+    new Chart(document.getElementById('hourlyChart'), {
+        type: 'line',
+        data: {
+            labels: hourlyData.map(d => d.hour),
+            datasets: [{
+                label: 'Translations',
+                data: hourlyData.map(d => d.count),
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // Daily Chart
+    const dailyData = {{ daily_stats|tojson }};
+    new Chart(document.getElementById('dailyChart'), {
+        type: 'bar',
+        data: {
+            labels: dailyData.map(d => d.date),
+            datasets: [{
+                label: 'Translations',
+                data: dailyData.map(d => d.count),
+                backgroundColor: '#818cf8'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

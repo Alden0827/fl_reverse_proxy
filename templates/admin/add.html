@@ -17,13 +17,42 @@
                 </label>
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" id="name" name="name" type="text" placeholder="e.g. My Awesome App" required>
             </div>
+
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="url">
-                    Application URL
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Backend URLs
                 </label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" id="url" name="url" type="url" placeholder="e.g. http://localhost:5001" required>
+                <div id="url-container">
+                    <div class="flex mb-2">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" name="urls" type="url" placeholder="e.g. http://localhost:5001" required>
+                        <button type="button" class="ml-2 text-red-600 hover:text-red-800 focus:outline-none remove-url-btn hidden">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" id="add-url-btn" class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center">
+                    <i class="fas fa-plus-circle mr-1"></i> Add another URL
+                </button>
                 <p class="text-xs text-gray-500 mt-1">Full URL with protocol and port.</p>
             </div>
+
+            <div class="mb-4">
+                <label class="flex items-center cursor-pointer">
+                    <div class="relative">
+                        <input type="checkbox" name="load_balancing_enabled" class="sr-only">
+                        <div class="block bg-gray-300 w-10 h-6 rounded-full shadow-inner"></div>
+                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                    </div>
+                    <div class="ml-3 text-gray-700 font-bold text-sm">
+                        Enable Round-Robin Load Balancing
+                    </div>
+                </label>
+                <style>
+                    input:checked ~ .dot { transform: translateX(100%); background-color: #4f46e5; }
+                    input:checked ~ .block { background-color: #c7d2fe; }
+                </style>
+            </div>
+
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="image_url">
                     Image URL
@@ -44,4 +73,23 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.getElementById('add-url-btn').addEventListener('click', function() {
+        const container = document.getElementById('url-container');
+        const newDiv = document.createElement('div');
+        newDiv.className = 'flex mb-2';
+        newDiv.innerHTML = `
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" name="urls" type="url" placeholder="e.g. http://localhost:5001" required>
+            <button type="button" class="ml-2 text-red-600 hover:text-red-800 focus:outline-none remove-url-btn">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        container.appendChild(newDiv);
+
+        newDiv.querySelector('.remove-url-btn').addEventListener('click', function() {
+            newDiv.remove();
+        });
+    });
+</script>
 {% endblock %}
