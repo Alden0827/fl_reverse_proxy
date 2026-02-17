@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask AJAX DataTable</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-10">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-700">
+                Users List
+            </h1>
+
+            <!-- ✅ Refresh Button -->
+            <button id="refreshBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
+                Refresh
+            </button>
+        </div>
+
+        <table id="usersTable" class="display w-full">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+            // Initialize DataTable
+            var table = $('#usersTable').DataTable({
+                ajax: {
+                    url: "/get-data",
+                    type: "POST"
+                },
+                columns: [
+                    { data: "id" },
+                    { data: "name" },
+                    { data: "email" },
+                    { data: "role" }
+                ]
+            });
+
+            // ✅ Refresh button click event
+            $('#refreshBtn').on('click', function () {
+                table.ajax.reload(null, false); // false = keep current page
+            });
+
+        });
+    </script>
+
+</body>
+</html>
