@@ -45,4 +45,5 @@ thread = threading.Thread(target=health_check_worker, daemon=True)
 thread.start()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # app.run(debug=True, port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True, use_reloader=False)
