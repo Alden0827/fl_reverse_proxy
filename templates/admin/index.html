@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-    <a href="{{ url_for('add_app') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center transition duration-300">
+    <a href="{{ url_for('admin.add_app') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center transition duration-300">
         <i class="fas fa-plus mr-2"></i> Add Application
     </a>
 </div>
@@ -24,7 +24,13 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10">
-                            <img class="h-10 w-10 rounded-full object-cover border" src="{{ app.image_url or 'https://via.placeholder.com/150' }}" alt="">
+                            {% if app.image_url %}
+                            <img class="h-10 w-10 rounded-full object-cover border" src="{{ app.image_url }}" alt="">
+                            {% else %}
+                            <div class="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100">
+                                <i class="fas fa-cube text-indigo-400 text-xs"></i>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="ml-4">
                             <div class="text-sm font-medium text-gray-900">{{ app.name }}</div>
@@ -49,9 +55,9 @@
                     {% endif %}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex space-x-2">
-                    <a href="{{ url_for('app_dashboard', id=app.id) }}" class="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded">Stats</a>
-                    <a href="{{ url_for('edit_app', id=app.id) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded">Edit</a>
-                    <form action="{{ url_for('delete_app', id=app.id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                    <a href="{{ url_for('admin.app_dashboard', id=app.id) }}" class="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded">Stats</a>
+                    <a href="{{ url_for('admin.edit_app', id=app.id) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded">Edit</a>
+                    <form action="{{ url_for('admin.delete_app', id=app.id) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                         <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded">Delete</button>
                     </form>
                 </td>
