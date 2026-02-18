@@ -5,27 +5,31 @@ from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        if username == 'admin' and password == 'admin': # Simple admin/admin
+        if username == 'admin' and password == 'admin':  # Simple admin/admin
             session['logged_in'] = True
             return redirect(url_for('admin.admin'))
         flash('Invalid credentials')
     return render_template('login.html')
+
 
 @admin_bp.route('/logout')
 def admin_logout():
     session.pop('logged_in', None)
     return redirect(url_for('main.index'))
 
+
 @admin_bp.route('/')
 @login_required
 def admin():
     apps = Application.query.all()
     return render_template('admin/index.html', apps=apps)
+
 
 @admin_bp.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -55,6 +59,7 @@ def add_app():
         return redirect(url_for('admin.admin'))
     return render_template('admin/add.html')
 
+
 @admin_bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_app(id):
@@ -81,6 +86,7 @@ def edit_app(id):
         return redirect(url_for('admin.admin'))
     return render_template('admin/edit.html', app=app_to_edit)
 
+
 @admin_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_app(id):
@@ -89,6 +95,7 @@ def delete_app(id):
     db.session.commit()
     flash('Application deleted successfully')
     return redirect(url_for('admin.admin'))
+
 
 @admin_bp.route('/dashboard/<int:id>')
 @login_required
@@ -140,7 +147,8 @@ def app_dashboard(id):
     hourly_stats = []
     for i in range(23, -1, -1):
         hour_time = now - timedelta(hours=i)
-        count = sum(1 for log in logs if log.timestamp.replace(minute=0, second=0, microsecond=0) == hour_time.replace(minute=0, second=0, microsecond=0))
+        current_hour = hour_time.replace(minute=0, second=0, microsecond=0)
+        count = sum(1 for log in logs if log.timestamp.replace(minute=0, second=0, microsecond=0) == current_hour)
         hourly_stats.append({'hour': hour_time.strftime('%H:00'), 'count': count})
 
     return render_template('admin/dashboard.html',

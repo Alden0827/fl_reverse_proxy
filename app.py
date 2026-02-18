@@ -23,6 +23,7 @@ app.register_blueprint(proxy_bp)
 with app.app_context():
     db.create_all()
 
+
 def health_check_worker():
     with app.app_context():
         while True:
@@ -32,13 +33,14 @@ def health_check_worker():
                     try:
                         resp = requests.get(backend.url, timeout=5)
                         backend.is_online = (resp.status_code == 200)
-                    except:
+                    except Exception:
                         backend.is_online = False
                     backend.last_checked = datetime.utcnow()
                 db.session.commit()
             except Exception as e:
                 print(f"Health check error: {e}")
             time.sleep(30)
+
 
 # Start health check thread
 thread = threading.Thread(target=health_check_worker, daemon=True)

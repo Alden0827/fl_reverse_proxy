@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, jsonify
 from multiprocessing import Process
 
 app = Flask(__name__)
@@ -10,9 +10,11 @@ DATA = [
     {"id": 4, "name": "Ana Lopez", "email": "ana@email.com", "role": "Manager"},
 ]
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/get-data", methods=["POST"])
 def get_data():

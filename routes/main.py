@@ -3,6 +3,7 @@ from models import Application
 
 main_bp = Blueprint('main', __name__)
 
+
 @main_bp.route('/')
 def index():
     query = request.args.get('q', '')

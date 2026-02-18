@@ -3,6 +3,7 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
+
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -17,6 +18,7 @@ class Application(db.Model):
     def __repr__(self):
         return f'<Application {self.name}>'
 
+
 class BackendURL(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
@@ -25,6 +27,7 @@ class BackendURL(db.Model):
     last_checked = db.Column(db.DateTime, default=datetime.utcnow)
 
     logs = db.relationship('RequestLog', backref='backend', lazy=True)
+
 
 class RequestLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
