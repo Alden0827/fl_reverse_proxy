@@ -30,7 +30,7 @@ def health_check_worker():
                 backends = BackendURL.query.all()
                 for backend in backends:
                     try:
-                        resp = requests.get(backend.url, timeout=5)
+                        resp = requests.get(backend.url, timeout=5, verify=False)
                         backend.is_online = (resp.status_code == 200)
                     except:
                         backend.is_online = False

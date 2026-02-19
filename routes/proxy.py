@@ -27,10 +27,11 @@ def proxy(app_id, path):
         app_item.last_backend_index = idx
         db.session.commit()
 
-    backend_scheme = selected_backend.url.split('://')[0]
-    if request.scheme != backend_scheme:
-        target_url = f"{selected_backend.url.rstrip('/')}/{path}"
-        return redirect(target_url)
+    # check if protocols are compatible (http->https)
+    # backend_scheme = selected_backend.url.split('://')[0]
+    # if request.scheme != backend_scheme:
+    #     target_url = f"{selected_backend.url.rstrip('/')}/{path}"
+    #     return redirect(target_url)
 
     # If protocols match, proceed with normal proxy logic (check online status)
     selected_backend = None
